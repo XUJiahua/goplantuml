@@ -63,7 +63,7 @@ func main() {
 		renderingOptions[goplantuml.RenderImplementations] = *showImplementations
 
 	}
-	noteList := []string{}
+	var noteList []string
 	if *showOptionsAsNote {
 		legend, err := getLegend(renderingOptions)
 		if err != nil {
@@ -118,12 +118,11 @@ func main() {
 }
 
 func getDirectories() ([]string, error) {
-
 	args := flag.Args()
 	if len(args) < 1 {
 		return nil, errors.New("DIR missing")
 	}
-	dirs := []string{}
+	var dirs []string
 	for _, dir := range args {
 		fi, err := os.Stat(dir)
 		if os.IsNotExist(err) {
@@ -142,7 +141,7 @@ func getDirectories() ([]string, error) {
 }
 
 func getIgnoredDirectories(list string) ([]string, error) {
-	result := []string{}
+	var result []string
 	list = strings.TrimSpace(list)
 	if list == "" {
 		return result, nil
