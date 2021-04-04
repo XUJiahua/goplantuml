@@ -287,6 +287,21 @@ func (p *ClassParser) handleFuncDecl(decl *ast.FuncDecl) {
 			Tag:     nil,
 			Comment: nil,
 		}, p.allImports)
+	} else {
+		// TODO: need a proper name, in plantuml, you may not define 2 class with same name
+		theType := p.currentPackageName
+		structure := p.getOrCreateStruct(theType)
+		if structure.Type == "" {
+			structure.Type = "package"
+		}
+
+		structure.AddMethod(&ast.Field{
+			Names:   []*ast.Ident{decl.Name},
+			Doc:     decl.Doc,
+			Type:    decl.Type,
+			Tag:     nil,
+			Comment: nil,
+		}, p.allImports)
 	}
 }
 
@@ -437,7 +452,7 @@ func (p *ClassParser) renderStructures(pack string, structures map[string]*Struc
 		aggregations := &LineStringBuilder{}
 		str.WriteLineWithDepth(0, fmt.Sprintf(`namespace %s {`, pack))
 
-		names := []string{}
+		var names []string
 		for name := range structures {
 			names = append(names, name)
 		}
@@ -512,7 +527,9 @@ func (p *ClassParser) renderStructure(structure *Struct, pack string, name strin
 	case "alias":
 		sType = "<< (T, #FF7700) >> "
 		renderStructureType = "class"
-
+	case "package":
+		sType = "<< (P, DimGray) >> "
+		renderStructureType = "class"
 	}
 	str.WriteLineWithDepth(1, fmt.Sprintf(`%s %s %s {`, renderStructureType, name, sType))
 	p.renderStructFields(structure, privateFields, publicFields)
