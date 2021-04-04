@@ -5,13 +5,26 @@ import (
 	"unicode"
 )
 
+type StructType string
+
+const (
+	StructTypeNone      StructType = ""
+	StructTypePackage   StructType = "package"
+	StructTypeStruct    StructType = "struct"
+	StructTypeInterface StructType = "interface"
+	StructTypeAlias     StructType = "alias"
+)
+
+//Struct represents a package, or a struct, or a interface, or a alias in golang.
+// they all have functions
+// package and struct has fields ( need display fields of package or not?)
 //Struct represent a struct in golang, it can be of Type "class" or "interface" and can be associated
 //with other structs via Composition and Extends
 type Struct struct {
 	PackageName         string
 	Functions           []*Function
 	Fields              []*Field
-	Type                string
+	Type                StructType
 	Composition         map[string]struct{}
 	Extends             map[string]struct{}
 	Aggregations        map[string]struct{}

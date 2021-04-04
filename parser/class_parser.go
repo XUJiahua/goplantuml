@@ -261,7 +261,6 @@ func (p *ClassParser) parseFileDeclarations(node ast.Decl) {
 }
 
 func (p *ClassParser) handleFuncDecl(decl *ast.FuncDecl) {
-
 	if decl.Recv != nil {
 		if decl.Recv.List == nil {
 			return
@@ -274,8 +273,8 @@ func (p *ClassParser) handleFuncDecl(decl *ast.FuncDecl) {
 			theType = theType[1:]
 		}
 		structure := p.getOrCreateStruct(theType)
-		if structure.Type == "" {
-			structure.Type = "class"
+		if structure.Type == StructTypeNone {
+			structure.Type = StructTypeStruct
 		}
 
 		fullName := fmt.Sprintf("%s.%s", p.currentPackageName, theType)
@@ -291,8 +290,8 @@ func (p *ClassParser) handleFuncDecl(decl *ast.FuncDecl) {
 		// TODO: need a proper name, in plantuml, you may not define 2 class with same name
 		theType := p.currentPackageName
 		structure := p.getOrCreateStruct(theType)
-		if structure.Type == "" {
-			structure.Type = "package"
+		if structure.Type == StructTypeNone {
+			structure.Type = StructTypePackage
 		}
 
 		structure.AddMethod(&ast.Field{
@@ -340,16 +339,16 @@ func (p *ClassParser) handleGenDecl(decl *ast.GenDecl) {
 func (p *ClassParser) processSpec(spec ast.Spec) {
 	var typeName string
 	var alias *Alias
-	declarationType := "alias"
+	declarationType := StructTypeAlias
 	switch v := spec.(type) {
 	case *ast.TypeSpec:
 		typeName = v.Name.Name
 		switch c := v.Type.(type) {
 		case *ast.StructType:
-			declarationType = "class"
+			declarationType = StructTypeStruct
 			handleGenDecStructType(p, typeName, c)
 		case *ast.InterfaceType:
-			declarationType = "interface"
+			declarationType = StructTypeInterface
 			handleGenDecInterfaceType(p, typeName, c)
 		default:
 			basicType, _ := getFieldType(getBasicType(c), p.allImports)
@@ -373,11 +372,11 @@ func (p *ClassParser) processSpec(spec ast.Spec) {
 	p.getOrCreateStruct(typeName).Type = declarationType
 	fullName := fmt.Sprintf("%s.%s", p.currentPackageName, typeName)
 	switch declarationType {
-	case "interface":
+	case StructTypeInterface:
 		p.allInterfaces[fullName] = struct{}{}
-	case "class":
+	case StructTypeStruct:
 		p.allStructs[fullName] = struct{}{}
-	case "alias":
+	case StructTypeAlias:
 		p.allAliases[typeName] = alias
 		if strings.Count(alias.Name, ".") > 1 {
 			pack := strings.SplitN(alias.Name, ".", 2)
@@ -513,25 +512,26 @@ func (p *ClassParser) renderAliases(str *LineStringBuilder) {
 	}
 }
 
-func (p *ClassParser) renderStructure(structure *Struct, pack string, name string, str *LineStringBuilder, composition *LineStringBuilder, extends *LineStringBuilder, aggregations *LineStringBuilder) {
+// reference: https://plantuml.com/class-diagram
+var structTypePUMLType = map[StructType]string{
+	StructTypeStruct:    "class",
+	StructTypeAlias:     "class",
+	StructTypePackage:   "class",
+	StructTypeInterface: "interface",
+}
+var structTypePUMLStyle = map[StructType]string{
+	StructTypeStruct:    "<< (S, Aquamarine) >>",
+	StructTypeAlias:     "<< (T, #FF7700) >> ",
+	StructTypePackage:   "<< (P, DimGray) >>",
+	StructTypeInterface: "",
+}
 
+func (p *ClassParser) renderStructure(structure *Struct, pack string, name string, str *LineStringBuilder, composition *LineStringBuilder, extends *LineStringBuilder, aggregations *LineStringBuilder) {
 	privateFields := &LineStringBuilder{}
 	publicFields := &LineStringBuilder{}
 	privateMethods := &LineStringBuilder{}
 	publicMethods := &LineStringBuilder{}
-	sType := ""
-	renderStructureType := structure.Type
-	switch structure.Type {
-	case "class":
-		sType = "<< (S,Aquamarine) >>"
-	case "alias":
-		sType = "<< (T, #FF7700) >> "
-		renderStructureType = "class"
-	case "package":
-		sType = "<< (P, DimGray) >> "
-		renderStructureType = "class"
-	}
-	str.WriteLineWithDepth(1, fmt.Sprintf(`%s %s %s {`, renderStructureType, name, sType))
+	str.WriteLineWithDepth(1, fmt.Sprintf(`%s %s %s {`, structTypePUMLType[structure.Type], name, structTypePUMLStyle[structure.Type]))
 	p.renderStructFields(structure, privateFields, publicFields)
 	p.renderStructMethods(structure, privateMethods, publicMethods)
 	p.renderCompositions(structure, name, composition)
@@ -687,7 +687,7 @@ func (p *ClassParser) getOrCreateStruct(name string) *Struct {
 			PackageName:         p.currentPackageName,
 			Functions:           make([]*Function, 0),
 			Fields:              make([]*Field, 0),
-			Type:                "",
+			Type:                StructTypeNone,
 			Composition:         make(map[string]struct{}, 0),
 			Extends:             make(map[string]struct{}, 0),
 			Aggregations:        make(map[string]struct{}, 0),
