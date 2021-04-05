@@ -118,6 +118,7 @@ type ClassParser struct {
 	allImports         map[string]string
 	allAliases         map[string]*Alias
 	allRenamedStructs  map[string]map[string]string
+	dirCommonPrefix    string
 }
 
 //NewClassDiagramWithOptions returns a new classParser with which can Render the class diagram of
@@ -142,6 +143,7 @@ func NewClassDiagramWithOptions(options *ClassDiagramOptions) (*ClassParser, err
 		allImports:        make(map[string]string),
 		allAliases:        make(map[string]*Alias),
 		allRenamedStructs: make(map[string]map[string]string),
+		dirCommonPrefix:   getCommonPrefix(options.Directories),
 	}
 	ignoreDirectoryMap := map[string]struct{}{}
 	for _, dir := range options.IgnoredDirectories {
@@ -206,7 +208,8 @@ func NewClassDiagram(directoryPaths []string, ignoreDirectories []string, recurs
 //parse the given ast.Package into the ClassParser structure
 func (p *ClassParser) parsePackage(node ast.Node) {
 	pack := node.(*ast.Package)
-	p.currentPackageName = pack.Name
+	// fix: distinguish duplicate package name with path prefix
+	p.currentPackageName = p.getDisplayPackageName(pack)
 	_, ok := p.structure[p.currentPackageName]
 	if !ok {
 		p.structure[p.currentPackageName] = make(map[string]*Struct)
@@ -287,8 +290,7 @@ func (p *ClassParser) handleFuncDecl(decl *ast.FuncDecl) {
 			Comment: nil,
 		}, p.allImports)
 	} else {
-		// TODO: need a proper name, in plantuml, you may not define 2 class with same name
-		theType := p.currentPackageName
+		theType := getRealPackageName(p.currentPackageName)
 		structure := p.getOrCreateStruct(theType)
 		if structure.Type == StructTypeNone {
 			structure.Type = StructTypePackage
@@ -553,7 +555,7 @@ func (p *ClassParser) renderStructure(structure *Struct, pack string, name strin
 }
 
 func (p *ClassParser) renderCompositions(structure *Struct, name string, composition *LineStringBuilder) {
-	orderedCompositions := []string{}
+	var orderedCompositions []string
 
 	for c := range structure.Composition {
 		if !strings.Contains(c, ".") {
