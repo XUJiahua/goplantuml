@@ -34,7 +34,7 @@ func TestStructImplementsInterface(t *testing.T) {
 						FullNameReturnValues: []string{"int", "error"},
 					},
 				},
-				Type: "class",
+				Type: StructTypeStruct,
 			},
 			inter: &Struct{
 				Functions: []*Function{
@@ -53,7 +53,7 @@ func TestStructImplementsInterface(t *testing.T) {
 						FullNameReturnValues: []string{"int", "error"},
 					},
 				},
-				Type: "class",
+				Type: StructTypeStruct,
 			},
 			expectedResult: true,
 		}, {
@@ -122,7 +122,7 @@ func TestStructImplementsInterface(t *testing.T) {
 						FullNameReturnValues: []string{"int", "error"},
 					},
 				},
-				Type: "class",
+				Type: StructTypeStruct,
 			},
 			inter: &Struct{
 				Functions: []*Function{},
@@ -150,7 +150,7 @@ func TestStructImplementsInterface(t *testing.T) {
 						FullNameReturnValues: []string{"int", "error"},
 					},
 				},
-				Type: "class",
+				Type: StructTypeStruct,
 			},
 			inter: &Struct{
 				Functions: []*Function{
@@ -171,7 +171,7 @@ func TestStructImplementsInterface(t *testing.T) {
 						FullNameReturnValues: []string{"int", "error"},
 					},
 				},
-				Type: "class",
+				Type: StructTypeStruct,
 			},
 			expectedResult: false,
 		}, {
@@ -195,7 +195,7 @@ func TestStructImplementsInterface(t *testing.T) {
 						FullNameReturnValues: []string{"int", "error"},
 					},
 				},
-				Type: "class",
+				Type: StructTypeStruct,
 			},
 			inter: &Struct{
 				Functions: []*Function{
@@ -212,7 +212,7 @@ func TestStructImplementsInterface(t *testing.T) {
 						FullNameReturnValues: []string{"error", "int"},
 					},
 				},
-				Type: "class",
+				Type: StructTypeStruct,
 			},
 			expectedResult: false,
 		},
@@ -246,7 +246,7 @@ func TestAddToComposition(t *testing.T) {
 				FullNameReturnValues: []string{"error", "int"},
 			},
 		},
-		Type:        "class",
+		Type:        StructTypeStruct,
 		PackageName: "test",
 		Fields:      make([]*Field, 0),
 		Composition: make(map[string]struct{}),
@@ -294,7 +294,7 @@ func TestAddToExtension(t *testing.T) {
 				FullNameReturnValues: []string{"error", "int"},
 			},
 		},
-		Type:        "class",
+		Type:        StructTypeStruct,
 		PackageName: "test",
 		Fields:      make([]*Field, 0),
 		Composition: make(map[string]struct{}),
@@ -348,7 +348,7 @@ func TestAddField(t *testing.T) {
 				FullNameReturnValues: []string{"error", "int"},
 			},
 		},
-		Type:         "class",
+		Type:         StructTypeStruct,
 		Fields:       make([]*Field, 0),
 		Composition:  make(map[string]struct{}),
 		Extends:      make(map[string]struct{}),
@@ -407,7 +407,7 @@ func TestAddMethod(t *testing.T) {
 	st := &Struct{
 		PackageName: "main",
 		Functions:   []*Function{},
-		Type:        "class",
+		Type:        StructTypeStruct,
 	}
 	st.AddMethod(&ast.Field{
 		Names: []*ast.Ident{

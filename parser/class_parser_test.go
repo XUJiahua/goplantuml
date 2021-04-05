@@ -46,7 +46,7 @@ func TestGetOrCreateStruct(t *testing.T) {
 						ReturnValues: []string{"error", "int"},
 					},
 				},
-				Type: "class",
+				Type: StructTypeStruct,
 			},
 			expectedEmpty: false,
 		}, {
@@ -69,7 +69,7 @@ func TestGetOrCreateStruct(t *testing.T) {
 						ReturnValues: []string{"error", "int"},
 					},
 				},
-				Type: "class",
+				Type: StructTypeStruct,
 			},
 			expectedEmpty: true,
 		},
@@ -131,7 +131,7 @@ func TestGetStruct(t *testing.T) {
 				ReturnValues: []string{"error", "int"},
 			},
 		},
-		Type: "class",
+		Type: StructTypeStruct,
 	}
 	parser := getEmptyParser("main")
 	parser.structure["main"] = make(map[string]*Struct)
@@ -251,7 +251,7 @@ func TestRenderStructure(t *testing.T) {
 
 func getTestStruct() *Struct {
 	return &Struct{
-		Type:        "class",
+		Type:        StructTypeStruct,
 		PackageName: "main",
 		Composition: map[string]struct{}{
 			"foopack.AnotherClass": {},
@@ -452,7 +452,7 @@ func TestNewClassDiagram(t *testing.T) {
 		Recursive       bool
 		ExpectedStructs []struct {
 			Name   string
-			Type   string
+			Type   StructType
 			Exists bool
 		}
 	}{
@@ -475,17 +475,17 @@ func TestNewClassDiagram(t *testing.T) {
 			Recursive:     true,
 			ExpectedStructs: []struct {
 				Name   string
-				Type   string
+				Type   StructType
 				Exists bool
 			}{
 				{
 					Name:   "testingsupport.test",
-					Type:   "class",
+					Type:   StructTypeStruct,
 					Exists: true,
 				},
 				{
 					Name:   "subfolder.test2",
-					Type:   "interface",
+					Type:   StructTypeInterface,
 					Exists: true,
 				},
 			},
@@ -497,17 +497,17 @@ func TestNewClassDiagram(t *testing.T) {
 			Recursive:     false,
 			ExpectedStructs: []struct {
 				Name   string
-				Type   string
+				Type   StructType
 				Exists bool
 			}{
 				{
 					Name:   "testingsupport.test",
-					Type:   "class",
+					Type:   StructTypeStruct,
 					Exists: true,
 				},
 				{
 					Name:   "subfolder.test2",
-					Type:   "interface",
+					Type:   StructTypeInterface,
 					Exists: false,
 				},
 			},
