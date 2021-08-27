@@ -209,6 +209,67 @@ func NewClassDiagram(directoryPaths []string, ignoreDirectories []string, recurs
 	return NewClassDiagramWithOptions(options)
 }
 
+func NewClassDiagramForSrc(src string) (*ClassParser, error) {
+	options := &ClassDiagramOptions{
+		RenderingOptions: map[RenderingOption]interface{}{},
+	}
+	classParser := &ClassParser{
+		renderingOptions: &RenderingOptions{
+			Aggregations:     false,
+			Fields:           true,
+			Methods:          true,
+			Compositions:     true,
+			Implementations:  true,
+			Aliases:          true,
+			ConnectionLabels: false,
+			Title:            "",
+			Notes:            "",
+		},
+		structure:         make(map[string]map[string]*Struct),
+		allInterfaces:     make(map[string]struct{}),
+		allStructs:        make(map[string]struct{}),
+		allImports:        make(map[string]string),
+		allAliases:        make(map[string]*Alias),
+		allRenamedStructs: make(map[string]map[string]string),
+	}
+
+	err := classParser.parseSrc(src)
+	if err != nil {
+		return nil, err
+	}
+
+	for s := range classParser.allStructs {
+		st := classParser.getStruct(s)
+		if st != nil {
+			for i := range classParser.allInterfaces {
+				inter := classParser.getStruct(i)
+				if st.ImplementsInterface(inter) {
+					st.AddToExtends(i)
+				}
+			}
+		}
+	}
+	classParser.SetRenderingOptions(options.RenderingOptions)
+	return classParser, nil
+}
+
+func (p *ClassParser) parseSrc(src string) error {
+	fs := token.NewFileSet()
+	f, err := parser.ParseFile(fs, "main.go", src, 0)
+	if err != nil {
+		return err
+	}
+
+	pack := &ast.Package{
+		Name: "main",
+		Files: map[string]*ast.File{
+			"main.go": f,
+		},
+	}
+	p.parsePackage(pack)
+	return nil
+}
+
 // parse the given ast.Package into the ClassParser structure
 func (p *ClassParser) parsePackage(node ast.Node) {
 	pack := node.(*ast.Package)
